@@ -1,11 +1,16 @@
-// import * as THREE from 'three';
-import * as THREE from 'https://cdn.skypack.dev/three@v0.137';
-//import { Three_face } from "./components/three_face.js";
-export class Scene{
-    constructor()
-    {
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.138.3/build/three.module.js";
+import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.138.3/examples/jsm/loaders/GLTFLoader.js";
+
+export class Scene {
+    constructor() {
         // Video
         const canvasElement = document.createElement('canvas');
+        this.mixer;
+        this.clock = new THREE.Clock()
+        this.currentlyAnimating = false;
+        let loaderAnim = document.getElementById('js-loader');
+        let model;
+
         // Sizes
         let sizes = {
             width: window.innerWidth,
@@ -19,7 +24,7 @@ export class Scene{
         canvasElement.style.zIndex = 5
 
 
-        var body = document.getElementsByTagName("body")[0];    
+        var body = document.getElementsByTagName("body")[0];
         body.appendChild(canvasElement);
 
         this.body_pose = [];
@@ -28,106 +33,137 @@ export class Scene{
         // Scene
         this.scene = new THREE.Scene()
 
-        // Lights
-        let color = 0xFFFFFF
-        let intensity = 1
-        this.light = new THREE.DirectionalLight(color, intensity)
-        this.light.position.set(-1, 2, 4)
-        this.scene.add(this.light)
-
-        // Box
-        let boxWidth = 1.5
-        let boxHeight = 1.5
-        let boxDepth = 1.5
-        let geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth)
-        let material = new THREE.MeshPhongMaterial({
-            color: 0x44aa88,
-            transparent: true,
-            opacity: 0.8
-        })
-        this.cube = new THREE.Mesh(geometry, material)
-        this.scene.add(this.cube)
-
-        let fov = 75
-        let near = 0.01
-        let far = 1000
-        this.camera = new THREE.PerspectiveCamera(fov, 640/480, near, far)
-        this.camera.position.z = 2;
-
+        // Init the renderer
         this.renderer = new THREE.WebGLRenderer({
             canvas: canvasElement,
             alpha: true,
             antialias: true,
         })
+        renderer.shadowMap.enabled = true;
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        
+
+        // Model
+        const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
+
+        let stacy_txt = new THREE.TextureLoader().load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
+        stacy_txt.flipY = false;
+
+        const stacy_mtl = new THREE.MeshPhongMaterial({
+            map: stacy_txt,
+            color: 0xffffff,
+            skinning: true });
+
+        var loader = new GLTFLoader();
+
+        loader.load(
+            MODEL_PATH,
+            function (gltf) {
+                console.log("loading");
+                model = gltf.scene;
+                let fileAnimations = gltf.animations;
+
+                model.traverse(o => {
+
+                    if (o.isMesh) {
+                        o.castShadow = true;
+                        o.receiveShadow = true;
+                        o.material = stacy_mtl;
+                    }
+                });
+                model.scale.set(7, 7, 7);
+                
+                model.position.x = 0;
+                model.position.y = -11;
+                model.position.z = 0;
+
+                this.scene.add(model);
+
+                loaderAnim.remove();
+
+                this.mixer = new THREE.AnimationMixer(model);
+
+                let idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
+
+                this.idle = this.mixer.clipAction(idleAnim);
+                idle.play();
+            },
+            undefined, // We don't need this function
+            function (error) {
+                console.error(error);
+            }
+        );
+
+        let fov = 75
+        let near = 0.01
+        let far = 1000
+        this.camera = new THREE.PerspectiveCamera(fov, 640 / 480, near, far)
+
+        this.camera.position.x = 0;
+        this.camera.position.y = -3;
+        this.camera.position.z = 30;
+
         this.renderer.setSize(sizes.width, sizes.height)
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-        
-        /**
-         * Animate
-         */
-        
+
         this.clock = new THREE.Clock()
-               
+
+        // Add lights
+        let hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.61);
+        hemiLight.position.set(0, 50, 0);
+        // Add hemisphere light to scene
+        scene.add(hemiLight);
+
+        let d = 8.25;
+        let dirLight = new THREE.DirectionalLight(0xffffff, 0.54);
+        dirLight.position.set(-8, 12, 8);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+        dirLight.shadow.camera.near = 0.1;
+        dirLight.shadow.camera.far = 1500;
+        dirLight.shadow.camera.left = d * -1;
+        dirLight.shadow.camera.right = d;
+        dirLight.shadow.camera.top = d;
+        dirLight.shadow.camera.bottom = d * -1;
+        // Add directional Light to scene
+        scene.add(dirLight);
+
         this.onResults();
-        
-        this.render()
-        
-        
     }
 
-    onResults(){
-          
-        if(this.body_pose.length == 0) return;
+    onResults() {
+
+        if (this.body_pose.length == 0) return;
         let pose_nose = this.body_pose[0].slice(0, 3);
         let pose_right_ear = this.body_pose[7].slice(0, 3);
         let pose_left_ear = this.body_pose[8].slice(0, 3);
         const z_diff_RE_LE = pose_right_ear[2] - pose_left_ear[2];
         const y_diff_RE_LE = pose_right_ear[1] - pose_left_ear[1];
-        // let pose_mouth_left = this.body_pose[9].slice(0, 3);
-        // let pose_left_eye_inner = this.body_pose[1].slice(0,3);
-        const nx = pose_nose[0], ny= pose_nose[1], nz=pose_nose[2];
-        // const mrx = pose_right_ear[0], mry = pose_right_ear[1], mrz = pose_right_ear[2];
-        // const mlx = pose_left_ear[0], mly = pose_left_ear[1], mlz = pose_left_ear[2];
-        
-        let head_pos = new THREE.Vector3();
-        head_pos.set(
-            nx/185 -5.5,
-            -ny/150 + 4,
-            -nz/170);
-        
-        this.cube.position.x = head_pos.x;
-        this.cube.position.y = head_pos.y;
-        this.cube.position.z = head_pos.z;
-
-        // const vec_direct_head = new THREE.Vector3((mry-ny)*(mlz-nz)-(mrz-nz)*(mly-ny),
-        // (mrz-nz)*(mlx-nx)-(mrx-nx)*(mlz-nz),
-        // (mrx-nx)*(mly-ny)-(mry-ny)*(mlx-nx));   
-        
-        // this.cube.lookAt(vec_direct_head);
-        let x_axis = new THREE.Vector3(1,0,0);
-        let y_axis = new THREE.Vector3(0,1,0);
-        let z_axis = new THREE.Vector3(0,0,1);
-        this.cube.rotation.y = THREE.Math.degToRad(-z_diff_RE_LE*1.5+15);
-        this.cube.rotation.x = THREE.Math.degToRad(-y_diff_RE_LE*1.5+15);
-        // this.cube.rotation.y = THREE.Math.degToRad(-z_diff_RE_LE*1.5+15);
-        // this.cube.rotation.z = THREE.Math.degToRad(y_diff_RE_LE);
-        // this.cube.setRotationFromAxisAngle(y_axis,z_diff_RE_LE);
-        // this.cube.setRotationFromAxisAngle(z_axis,y_diff_RE_LE/25);
+        const nx = pose_nose[0], ny = pose_nose[1], nz = pose_nose[2];
     }
 
-    render() {
-        this.renderer.render(this.scene, this.camera)
-    }
 
-    reset() {}
+    reset() { }
 
     update_data(body_pose) {
+        if (this.mixer) {
+            this.mixer.update(this.clock.getDelta());
+        }
+
         this.body_pose = body_pose;
         this.onResults();
+        this.renderer.render(this.scene, this.camera);
+        this.requestAnimationFrame();
+        // this.requestAnimationFrame(update_data);
+
     }
 
-    show() {}
-    
-    update() {}
+    show() { }
+
+    update() { }
+
+
 }
 
