@@ -1,21 +1,26 @@
 // import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.137/build/three.module.js";
 // import * as THREE from 'https://cdn.skypack.dev/three';
-// import * as THREE from 'https://cdn.skypack.dev/three@0.137/';
+// import * as THREE from 'https://cdn.skypack.dev/three@0.137';
 // import * as THREE from 'threejs.org/build/three.min.js';
-import * as THREE from 'threejs.org/build/three.js';
-import { GLTFLoader } from 'threejs.org/examples/jsm/loaders/GLTFLoader.js'
+// import * as THREE from "https://threejs.org/build/three.js";
+// import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.138.3/build/three.module.js";
+import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
+
+// import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js"
 // import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.137/examples/jsm/loaders/GLTFLoader.js';
 // import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.137/examples/jsm/loaders/GLTFLoader.js";
-
-// import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.138.3/build/three.module.js";
 // import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.138.3/examples/jsm/loaders/GLTFLoader.js";
 // import { GLTFLoader } from 'https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/GLTFLoader.js'
+import { GLTFLoader } from 'https://unpkg.com/three@0.126.1/examples/jsm/loaders/GLTFLoader.js';
+
+
 
 export class Scene {
     constructor() {
         // Video
         const canvasElement = document.createElement('canvas');
         this.mixer;
+        let scene;
         this.clock = new THREE.Clock()
         this.currentlyAnimating = false;
         let loaderAnim = document.getElementById('js-loader');
@@ -41,7 +46,7 @@ export class Scene {
         this.init = false;
 
         // Scene
-        this.scene = new THREE.Scene()
+        scene = new THREE.Scene()
 
         // Init the renderer
         this.renderer = new THREE.WebGLRenderer({
@@ -87,7 +92,7 @@ export class Scene {
                 model.position.y = -11;
                 model.position.z = 0;
 
-                this.scene.add(model);
+                scene.add(model);
 
                 // loaderAnim.remove();
 
@@ -111,7 +116,7 @@ export class Scene {
 
         this.camera.position.x = 0;
         this.camera.position.y = -3;
-        this.camera.position.z = 30;
+        this.camera.position.z = -30;
 
         this.renderer.setSize(sizes.width, sizes.height)
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -137,7 +142,7 @@ export class Scene {
         dirLight.shadow.camera.bottom = d * -1;
         // Add directional Light to scene
         scene.add(dirLight);
-
+        this.scene = scene;
         this.onResults();
     }
 

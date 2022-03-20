@@ -34,7 +34,7 @@ class Esla {
     }
     
     show = () => {
-        this.scene.render();
+        // this.scene.render();
     }
     
 }
