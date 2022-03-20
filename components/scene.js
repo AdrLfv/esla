@@ -1,28 +1,14 @@
-// import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.137/build/three.module.js";
-// import * as THREE from 'https://cdn.skypack.dev/three';
-// import * as THREE from 'https://cdn.skypack.dev/three@0.137';
-// import * as THREE from 'threejs.org/build/three.min.js';
-// import * as THREE from "https://threejs.org/build/three.js";
-// import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.138.3/build/three.module.js";
 import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
-
-// import { GLTFLoader } from "https://threejs.org/examples/jsm/loaders/GLTFLoader.js"
-// import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.137/examples/jsm/loaders/GLTFLoader.js';
-// import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.137/examples/jsm/loaders/GLTFLoader.js";
-// import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.138.3/examples/jsm/loaders/GLTFLoader.js";
-// import { GLTFLoader } from 'https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/GLTFLoader.js'
 import { GLTFLoader } from 'https://unpkg.com/three@0.126.1/examples/jsm/loaders/GLTFLoader.js';
-
 
 
 export class Scene {
     constructor() {
         // Video
         const canvasElement = document.createElement('canvas');
-        this.mixer;
         // scene.background = new THREE.Color(0xf1f1f1);
         this.clock = new THREE.Clock()
-        // this.currentlyAnimating = false;
+        this.currentlyAnimating = false;
         let loaderAnim = document.getElementById('js-loader');
         let model;
 
@@ -38,14 +24,11 @@ export class Scene {
         canvasElement.style.top = "0px"
         canvasElement.style.zIndex = 5
 
-
-        
-
         this.body_pose = [];
         this.init = false;
 
         // Scene
-        let scene = new THREE.Scene()
+        this.scene = new THREE.Scene()
 
         // Init the renderer
         this.renderer = new THREE.WebGLRenderer({
@@ -74,11 +57,10 @@ export class Scene {
 
         loader.load(
             MODEL_PATH,
-            function (gltf) {
+            gltf => {
                 model = gltf.scene;
-                // let fileAnimations = gltf.animations;
-                
-
+                let fileAnimations = gltf.animations;
+            
                 model.traverse(o => {
 
                     if (o.isMesh) {
@@ -93,23 +75,22 @@ export class Scene {
                 model.position.y = -11;
                 model.position.z = 0;
 
-                scene.add(model);
+                this.scene.add(model);
 
                 // loaderAnim.remove();
 
-                // this.mixer = new THREE.AnimationMixer(model);
+                this.mixer = new THREE.AnimationMixer(model);
 
-                // let idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
+                let idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
 
-                // this.idle = this.mixer.clipAction(idleAnim);
-                // idle.play();
+                let idle = this.mixer.clipAction(idleAnim);
+                idle.play();
             },
             undefined, // We don't need this function
             function (error) {
                 console.error(error);
             }
         );
-
         // Camera
 
         let fov = 75
@@ -130,7 +111,7 @@ export class Scene {
         let hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.61);
         hemiLight.position.set(0, 50, 0);
         // Add hemisphere light to scene
-        scene.add(hemiLight);
+        this.scene.add(hemiLight);
 
         let d = 8.25;
         let dirLight = new THREE.DirectionalLight(0xffffff, 0.54);
@@ -144,9 +125,9 @@ export class Scene {
         dirLight.shadow.camera.top = d;
         dirLight.shadow.camera.bottom = d * -1;
         // Add directional Light to scene
-        scene.add(dirLight);
-        this.scene = scene;
+        this.scene.add(dirLight);
         // this.onResults();
+        console.log(this.mixer);
     }
 
     onResults() {
@@ -163,15 +144,22 @@ export class Scene {
 
     reset() { }
 
+    render()
+    {
+        this.renderer.render(this.scene, this.camera);
+    }
+    
     update_data(body_pose) {
-        // if (this.mixer) {
-        //     this.mixer.update(this.clock.getDelta());
-        // }
+        
+        if (this.mixer) {
+        // if (this.mixer != undefined) {
+            this.mixer.update(this.clock.getDelta());
+        }
 
         this.body_pose = body_pose;
         // this.onResults();
-        this.renderer.render(this.scene, this.camera);
-        // this.requestAnimationFrame();
+        // this.renderer.render(this.scene, this.camera);
+        // requestAnimationFrame(this.update_data);
         // this.requestAnimationFrame(update_data);
 
     }
