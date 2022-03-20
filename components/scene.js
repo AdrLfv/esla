@@ -6,12 +6,11 @@ export class Scene {
     constructor() {
         // Video
         const canvasElement = document.createElement('canvas');
-        // scene.background = new THREE.Color(0xf1f1f1);
+
         this.clock = new THREE.Clock()
         this.currentlyAnimating = false;
         let loaderAnim = document.getElementById('js-loader');
         let model;
-
         // Sizes
         let sizes = {
             width: window.innerWidth,
@@ -29,7 +28,7 @@ export class Scene {
 
         // Scene
         this.scene = new THREE.Scene()
-
+        this.scene.background = new THREE.Color(0x000000);
         // Init the renderer
         this.renderer = new THREE.WebGLRenderer({
             canvas: canvasElement,
@@ -44,14 +43,15 @@ export class Scene {
 
         // Model
         const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
-        
+
         let stacy_txt = new THREE.TextureLoader().load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
         stacy_txt.flipY = false;
 
         const stacy_mtl = new THREE.MeshPhongMaterial({
             map: stacy_txt,
             color: 0xffffff,
-            skinning: true });
+            skinning: true
+        });
 
         var loader = new GLTFLoader();
 
@@ -60,17 +60,27 @@ export class Scene {
             gltf => {
                 model = gltf.scene;
                 let fileAnimations = gltf.animations;
-            
+
                 model.traverse(o => {
 
                     if (o.isMesh) {
                         o.castShadow = true;
                         o.receiveShadow = true;
                         o.material = stacy_mtl;
+
                     }
+                    if (o.isBone && o.name === 'mixamorigNeck') {
+                        this.neck = o;
+
+                    }
+                    if (o.isBone && o.name === 'mixamorigSpine') {
+                        this.waist = o;
+                    }
+
                 });
+
                 model.scale.set(7, 10, 7);
-                
+
                 model.position.x = 0;
                 model.position.y = -11;
                 model.position.z = 0;
@@ -82,6 +92,9 @@ export class Scene {
                 this.mixer = new THREE.AnimationMixer(model);
 
                 let idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
+
+                idleAnim.tracks.splice(3, 3);
+                idleAnim.tracks.splice(9, 3);
 
                 let idle = this.mixer.clipAction(idleAnim);
                 idle.play();
@@ -126,42 +139,47 @@ export class Scene {
         dirLight.shadow.camera.bottom = d * -1;
         // Add directional Light to scene
         this.scene.add(dirLight);
-        // this.onResults();
         console.log(this.mixer);
     }
 
     onResults() {
 
         if (this.body_pose.length == 0) return;
-        let pose_nose = this.body_pose[0].slice(0, 3);
-        let pose_right_ear = this.body_pose[7].slice(0, 3);
-        let pose_left_ear = this.body_pose[8].slice(0, 3);
-        const z_diff_RE_LE = pose_right_ear[2] - pose_left_ear[2];
-        const y_diff_RE_LE = pose_right_ear[1] - pose_left_ear[1];
-        const nx = pose_nose[0], ny = pose_nose[1], nz = pose_nose[2];
+        let pose_nose = new THREE.Vector3(this.body_pose[0].slice(0, 3)[0],this.body_pose[0].slice(0, 3)[1],this.body_pose[0].slice(0, 3)[2]);
+        let pose_right_ear = new THREE.Vector3(this.body_pose[7].slice(0, 3)[0],this.body_pose[7].slice(0, 3)[1],this.body_pose[7].slice(0, 3)[2]);
+        return pose_nose.angleTo(pose_right_ear);
     }
 
+    moveJoint(coor, joint, degreeLimit) {
+        let degrees = getcoorDegrees(coor.x, coor.y, degreeLimit);
+        joint.rotation.y = THREE.Math.degToRad(degrees.x);
+        joint.rotation.x = THREE.Math.degToRad(degrees.y);
+        console.log(joint.rotation.x);
+    }
 
     reset() { }
 
-    render()
-    {
+    render() {
         this.renderer.render(this.scene, this.camera);
     }
-    
+
+
     update_data(body_pose) {
-        
+
         if (this.mixer) {
-        // if (this.mixer != undefined) {
+            // if (this.mixer != undefined) {
             this.mixer.update(this.clock.getDelta());
         }
 
         this.body_pose = body_pose;
-        // this.onResults();
-        // this.renderer.render(this.scene, this.camera);
-        // requestAnimationFrame(this.update_data);
-        // this.requestAnimationFrame(update_data);
-
+        if(this.neck.rotation)
+        {
+            // console.log(this.neck.rotation.x, " ", this.neck.rotation.y);
+            var neck_angle = this.onResults()
+            console.log(neck_angle);
+            this.neck.rotation.y = -(neck_angle-0.05)*15;
+        }
+        // this.neck.rotation.x = 1;
     }
 
     show() { }
