@@ -20,9 +20,9 @@ export class Scene {
         // Video
         const canvasElement = document.createElement('canvas');
         this.mixer;
-        let scene;
+        // scene.background = new THREE.Color(0xf1f1f1);
         this.clock = new THREE.Clock()
-        this.currentlyAnimating = false;
+        // this.currentlyAnimating = false;
         let loaderAnim = document.getElementById('js-loader');
         let model;
 
@@ -39,14 +39,13 @@ export class Scene {
         canvasElement.style.zIndex = 5
 
 
-        var body = document.getElementsByTagName("body")[0];
-        body.appendChild(canvasElement);
+        
 
         this.body_pose = [];
         this.init = false;
 
         // Scene
-        scene = new THREE.Scene()
+        let scene = new THREE.Scene()
 
         // Init the renderer
         this.renderer = new THREE.WebGLRenderer({
@@ -56,11 +55,13 @@ export class Scene {
         })
         // renderer.shadowMap.enabled = true;
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        var body = document.getElementsByTagName("body")[0];
+        body.appendChild(canvasElement);
         // document.body.appendChild(renderer.domElement);
 
         // Model
         const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
-
+        
         let stacy_txt = new THREE.TextureLoader().load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
         stacy_txt.flipY = false;
 
@@ -75,7 +76,7 @@ export class Scene {
             MODEL_PATH,
             function (gltf) {
                 model = gltf.scene;
-                let fileAnimations = gltf.animations;
+                // let fileAnimations = gltf.animations;
                 
 
                 model.traverse(o => {
@@ -86,7 +87,7 @@ export class Scene {
                         o.material = stacy_mtl;
                     }
                 });
-                model.scale.set(7, 7, 7);
+                model.scale.set(7, 10, 7);
                 
                 model.position.x = 0;
                 model.position.y = -11;
@@ -109,14 +110,16 @@ export class Scene {
             }
         );
 
+        // Camera
+
         let fov = 75
         let near = 0.01
         let far = 1000
         this.camera = new THREE.PerspectiveCamera(fov, 640 / 480, near, far)
 
         this.camera.position.x = 0;
-        this.camera.position.y = -3;
-        this.camera.position.z = -30;
+        this.camera.position.y = 5;
+        this.camera.position.z = 10;
 
         this.renderer.setSize(sizes.width, sizes.height)
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -143,7 +146,7 @@ export class Scene {
         // Add directional Light to scene
         scene.add(dirLight);
         this.scene = scene;
-        this.onResults();
+        // this.onResults();
     }
 
     onResults() {
