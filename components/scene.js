@@ -1,5 +1,15 @@
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.138.3/build/three.module.js";
-import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.138.3/examples/jsm/loaders/GLTFLoader.js";
+// import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.137/build/three.module.js";
+// import * as THREE from 'https://cdn.skypack.dev/three';
+// import * as THREE from 'https://cdn.skypack.dev/three@0.137/';
+// import * as THREE from 'threejs.org/build/three.min.js';
+import * as THREE from 'threejs.org/build/three.js';
+import { GLTFLoader } from 'threejs.org/examples/jsm/loaders/GLTFLoader.js'
+// import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.137/examples/jsm/loaders/GLTFLoader.js';
+// import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.137/examples/jsm/loaders/GLTFLoader.js";
+
+// import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.138.3/build/three.module.js";
+// import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.138.3/examples/jsm/loaders/GLTFLoader.js";
+// import { GLTFLoader } from 'https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/GLTFLoader.js'
 
 export class Scene {
     constructor() {
@@ -39,11 +49,9 @@ export class Scene {
             alpha: true,
             antialias: true,
         })
-        renderer.shadowMap.enabled = true;
-        renderer.setPixelRatio(window.devicePixelRatio);
-        document.body.appendChild(renderer.domElement);
-
-        
+        // renderer.shadowMap.enabled = true;
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        // document.body.appendChild(renderer.domElement);
 
         // Model
         const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
@@ -61,9 +69,9 @@ export class Scene {
         loader.load(
             MODEL_PATH,
             function (gltf) {
-                console.log("loading");
                 model = gltf.scene;
                 let fileAnimations = gltf.animations;
+                
 
                 model.traverse(o => {
 
@@ -81,14 +89,14 @@ export class Scene {
 
                 this.scene.add(model);
 
-                loaderAnim.remove();
+                // loaderAnim.remove();
 
-                this.mixer = new THREE.AnimationMixer(model);
+                // this.mixer = new THREE.AnimationMixer(model);
 
-                let idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
+                // let idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
 
-                this.idle = this.mixer.clipAction(idleAnim);
-                idle.play();
+                // this.idle = this.mixer.clipAction(idleAnim);
+                // idle.play();
             },
             undefined, // We don't need this function
             function (error) {
@@ -148,14 +156,14 @@ export class Scene {
     reset() { }
 
     update_data(body_pose) {
-        if (this.mixer) {
-            this.mixer.update(this.clock.getDelta());
-        }
+        // if (this.mixer) {
+        //     this.mixer.update(this.clock.getDelta());
+        // }
 
         this.body_pose = body_pose;
-        this.onResults();
+        // this.onResults();
         this.renderer.render(this.scene, this.camera);
-        this.requestAnimationFrame();
+        // this.requestAnimationFrame();
         // this.requestAnimationFrame(update_data);
 
     }
