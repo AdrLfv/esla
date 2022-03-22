@@ -1,12 +1,11 @@
-import * as THREE from 'https://unpkg.com/three@0.126.1/build/three.module.js';
-import { GLTFLoader } from 'https://unpkg.com/three@0.126.1/examples/jsm/loaders/GLTFLoader.js';
-
+import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
+import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js';
+import {MathUtils} from 'https://unpkg.com/three@0.127.0/src/math/MathUtils.js'
 
 export class Scene {
     constructor() {
         // Video
         const canvasElement = document.createElement('canvas');
-
         this.clock = new THREE.Clock()
         this.currentlyAnimating = false;
         let loaderAnim = document.getElementById('js-loader');
@@ -139,15 +138,39 @@ export class Scene {
         dirLight.shadow.camera.bottom = d * -1;
         // Add directional Light to scene
         this.scene.add(dirLight);
-        console.log(this.mixer);
+        
     }
 
     onResults() {
 
         if (this.body_pose.length == 0) return;
-        let pose_nose = new THREE.Vector3(this.body_pose[0].slice(0, 3)[0],this.body_pose[0].slice(0, 3)[1],this.body_pose[0].slice(0, 3)[2]);
-        let pose_right_ear = new THREE.Vector3(this.body_pose[7].slice(0, 3)[0],this.body_pose[7].slice(0, 3)[1],this.body_pose[7].slice(0, 3)[2]);
-        return pose_nose.angleTo(pose_right_ear);
+        const pose_nose = new THREE.Vector3(this.body_pose[0].slice(0, 3)[0],this.body_pose[0].slice(0, 3)[1],this.body_pose[0].slice(0, 3)[2]);
+        // const pose_left_ear = new THREE.Vector3(this.body_pose[7].slice(0, 3)[0],this.body_pose[7].slice(0, 3)[1],this.body_pose[7].slice(0, 3)[2]);
+        const pose_right_ear = new THREE.Vector3(this.body_pose[8].slice(0, 3)[0],this.body_pose[8].slice(0, 3)[1],this.body_pose[8].slice(0, 3)[2]);
+        const pose_left_shoulder = new THREE.Vector3(this.body_pose[11].slice(0, 3)[0],this.body_pose[11].slice(0, 3)[1],this.body_pose[11].slice(0, 3)[2]);
+        const pose_right_shoulder = new THREE.Vector3(this.body_pose[12].slice(0, 3)[0],this.body_pose[12].slice(0, 3)[1],this.body_pose[12].slice(0, 3)[2]);
+        // const pose_bwd_nose = (new THREE.Vector3).copy(pose_left_ear).add(pose_right_ear).multiplyScalar(0.5);
+        const pose_neck = (new THREE.Vector3).copy(pose_left_shoulder).add(pose_right_shoulder).multiplyScalar(0.5);
+
+        // const vec_nose_neck = (new THREE.Vector3).subVectors(pose_neck, pose_nose);
+        // const vec_ls_neck = (new THREE.Vector3).subVectors(pose_left_shoulder, pose_neck);
+        // const vec_neck_fn = (new THREE.Vector3).subVectors(pose_neck, pose_forward_neck); 
+
+        // console.log("right_ear.z : ", pose_right_ear.z);
+        // console.log("nose.z : ", pose_nose.z);
+
+
+        // return {
+            // x: vec_neck_fn.angleTo(vec_nose_neck),
+            // y: vec_ls_neck.angleTo(vec_neck_fn), 
+            // z: vec_nose_neck.angleTo(vec_neck_fn)
+
+            // x: this.anglesBetween2D(vec_neck_fn.y, vec_neck_fn.z, vec_nose_neck.y, vec_nose_neck.z),
+            // y: this.anglesBetween2D(vec_ls_neck.x, vec_ls_neck.z, vec_neck_fn.x, vec_neck_fn.z), 
+            // z: this.anglesBetween2D(vec_nose_neck.x, vec_nose_neck.y, vec_neck_fn.x, vec_neck_fn.y)}
+            
+        return this.anglesBetween3D( pose_nose, pose_neck, pose_left_shoulder ) ;
+        
     }
 
     moveJoint(coor, joint, degreeLimit) {
@@ -167,25 +190,76 @@ export class Scene {
     update_data(body_pose) {
 
         if (this.mixer) {
-            // if (this.mixer != undefined) {
             this.mixer.update(this.clock.getDelta());
         }
 
         this.body_pose = body_pose;
-        if(this.neck.rotation)
+        if(this.neck)
         {
-            // console.log(this.neck.rotation.x, " ", this.neck.rotation.y);
-            var neck_angle = this.onResults()
-            console.log(neck_angle);
-            this.neck.rotation.y = -(neck_angle-0.05)*15;
+            var pose_neck_angle = this.onResults();
+            var targeted_position = -pose_neck_angle.y*0.7 + 1.2
+            var actual_diff_y = targeted_position - this.neck.rotation.y ;
+            this.neck.rotation.y += actual_diff_y/10  ;//+ actual_diff_y/5;
+            console.log("this.neck.rotation.y : ", this.neck.rotation.y);
+            console.log("pose_neck_angle.y : ", pose_neck_angle.y);
         }
-        // this.neck.rotation.x = 1;
     }
 
     show() { }
 
     update() { }
 
+    angleBetween2D( u,v ) {
 
+		const denom = Math.sqrt( Math.pow(u.x , 2) + Math.pow(u.y , 2) ) * Math.sqrt( Math.pow(v.x , 2) + Math.pow(v.y , 2) );
+
+		if ( denom === 0 ) { var theta = Math.PI / 2 ;}
+        else { var theta = Math.acos((u.x*v.x+ u.y*v.y)/ denom); }
+
+		// clamp, to handle numerical problems
+
+		// return  MathUtils.clamp( theta, - 1, 1 )
+        return theta;
+	}
+
+    anglesBetween3D(p1, p2, p3)
+    {
+
+
+        const u =  (new THREE.Vector3).subVectors(p1, p2);
+        const v =  (new THREE.Vector3).subVectors(p3, p2);
+
+        const teta_x = this.angleBetween2D(new THREE.Vector2(u.y,u.z), new THREE.Vector2(v.y,v.z));
+        const teta_y = this.angleBetween2D(new THREE.Vector2(u.x,u.z), new THREE.Vector2(v.x,v.z));
+        const teta_z = this.angleBetween2D(new THREE.Vector2(u.x,u.y), new THREE.Vector2(v.x,v.y));
+
+        return {x:teta_x,y: teta_y, z: teta_z}
+        
+    }
+
+    // subVectors( a, b ) {
+
+	// 	return THREE.Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+
+	// }
+
+    //     angleBetween(u, v ) {
+
+    // 		const denominator = Math.sqrt( this.lengthSq(u) * this.lengthSq(v) );
+
+    // 		if ( denominator === 0 ) return Math.PI / 2;
+
+    // 		const theta = u.dot( v ) / denominator;
+
+    // 		// clamp, to handle numerical problems
+
+    // 		return Math.acos( MathUtils.clamp( theta, - 1, 1 ) );
+
+    // 	}
+
+    //     lengthSq(u) {
+
+    // 		return u.x * u.x + u.y * u.y + u.z * u.z;
+
+    // 	}
 }
-
