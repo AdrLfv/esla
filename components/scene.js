@@ -94,8 +94,9 @@ export class Scene {
 
                 idleAnim.tracks.splice(3, 3);
                 idleAnim.tracks.splice(9, 3);
-
+                
                 let idle = this.mixer.clipAction(idleAnim);
+                idle.timeScale = 0.5;
                 idle.play();
             },
             undefined, // We don't need this function
@@ -147,6 +148,7 @@ export class Scene {
         const pose_nose = new THREE.Vector3(this.body_pose[0].slice(0, 3)[0],this.body_pose[0].slice(0, 3)[1],this.body_pose[0].slice(0, 3)[2]);
         // const pose_left_ear = new THREE.Vector3(this.body_pose[7].slice(0, 3)[0],this.body_pose[7].slice(0, 3)[1],this.body_pose[7].slice(0, 3)[2]);
         const pose_right_ear = new THREE.Vector3(this.body_pose[8].slice(0, 3)[0],this.body_pose[8].slice(0, 3)[1],this.body_pose[8].slice(0, 3)[2]);
+        const pose_mouth_right = new THREE.Vector3(this.body_pose[10].slice(0, 3)[0],this.body_pose[10].slice(0, 3)[1],this.body_pose[10].slice(0, 3)[2]);
         const pose_left_shoulder = new THREE.Vector3(this.body_pose[11].slice(0, 3)[0],this.body_pose[11].slice(0, 3)[1],this.body_pose[11].slice(0, 3)[2]);
         const pose_right_shoulder = new THREE.Vector3(this.body_pose[12].slice(0, 3)[0],this.body_pose[12].slice(0, 3)[1],this.body_pose[12].slice(0, 3)[2]);
         // const pose_bwd_nose = (new THREE.Vector3).copy(pose_left_ear).add(pose_right_ear).multiplyScalar(0.5);
@@ -169,7 +171,7 @@ export class Scene {
             // y: this.anglesBetween2D(vec_ls_neck.x, vec_ls_neck.z, vec_neck_fn.x, vec_neck_fn.z), 
             // z: this.anglesBetween2D(vec_nose_neck.x, vec_nose_neck.y, vec_neck_fn.x, vec_neck_fn.y)}
             
-        return this.anglesBetween3D( pose_nose, pose_neck, pose_left_shoulder ) ;
+        return this.anglesBetween3D( pose_mouth_right, pose_neck, pose_left_shoulder ) ;
         
     }
 
@@ -197,11 +199,20 @@ export class Scene {
         if(this.neck)
         {
             var pose_neck_angle = this.onResults();
-            var targeted_position = -pose_neck_angle.y*0.7 + 1.2
-            var actual_diff_y = targeted_position - this.neck.rotation.y ;
-            this.neck.rotation.y += actual_diff_y/10  ;//+ actual_diff_y/5;
-            console.log("this.neck.rotation.y : ", this.neck.rotation.y);
-            console.log("pose_neck_angle.y : ", pose_neck_angle.y);
+            var targeted_position_x = pose_neck_angle.x*1.57 + 3.4;
+            var targeted_position_y = -pose_neck_angle.y*0.7 + 1.5;
+            var targeted_position_z = pose_neck_angle.z*1.5 + 3.5;
+
+            var actual_diff_x = targeted_position_x - this.neck.rotation.x ;
+            var actual_diff_y = targeted_position_y - this.neck.rotation.y ;
+            var actual_diff_z = targeted_position_z - this.neck.rotation.z ;
+
+            this.neck.rotation.x += actual_diff_x/10  ;
+            this.neck.rotation.y += actual_diff_y/10  ;
+            this.neck.rotation.z += actual_diff_z/10  ;
+
+            // console.log("this.neck.rotation.x : ", this.neck.rotation.x);
+            console.log("pose_neck_angle.z : ", pose_neck_angle.z);
         }
     }
 
