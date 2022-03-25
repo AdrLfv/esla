@@ -59,7 +59,7 @@ export class Scene {
         });
 
         var loader = new GLTFLoader();
-
+        
         loader.load(
             MODEL_PATH,
             gltf => {
@@ -91,12 +91,21 @@ export class Scene {
                     else if (o.isBone && o.name === 'mixamorigRightArm') {
                         this.right_arm = o;
                         // this.right_arm.DefaultUp = (0,1,0);
-                        const vertexHelper = new VertexNormalsHelper( o, 10, 0x00ff00, 5 );
-                        this.scene.add( vertexHelper );
-                        
+                        // const vertexHelper = new VertexNormalsHelper( o, 10, 0x00ff00, 5 );
+                        // // this.scene.add( vertexHelper );
+                        // var quaternion = new THREE.Quaternion();
+                        // const quatObjToWorld = this.right_arm.getWorldQuaternion(quaternion);
+                        // // let rotation = new THREE.Euler();
+                        // // rotation.setFromQuaternion(quaternion);
+                        // this.right_arm.applyQuaternion(quatObjToWorld);
+                        this.right_arm.lookAt(new THREE.Vector3(0,0,0));
                     }
-                    else if (o.isBone && o.name === 'mixamorigLeftArm') {
+                    else if (o.isBone && o.name === 'mixamorigLeftForeArm') {
                         this.left_arm = o;
+                    }
+                    else if (o.isBone && o.name === 'mixamorigLeftForeArm') {
+                        this.left_fore_arm = o;
+                        console.log("left_fore_arm");
                     }
                 });
 
@@ -189,6 +198,9 @@ export class Scene {
         if (this.right_arm) {
             this.apply_rotation(this.right_arm);
         }
+        if (this.left_fore_arm) {
+            // this.apply_rotation(this.left_fore_arm);
+        }
     }
 
     show() { }
@@ -227,6 +239,7 @@ export class Scene {
             const pose_right_shoulder = new THREE.Vector3(this.body_pose[12].slice(0, 3)[0], this.body_pose[12].slice(0, 3)[1], this.body_pose[12].slice(0, 3)[2]);
             const point_articulation = ((new THREE.Vector3).copy(point2)).add(pose_right_shoulder).multiplyScalar(0.5);
             return this.anglesBetween3D(point1, point_articulation, point2);
+            //ATTENTION : point1 à point_articulation doivent former l'axe y du bone à pivoter
         }
         else if (joint == this.right_arm) {
             var pose_idx_p1 = 24;
@@ -247,9 +260,6 @@ export class Scene {
 
     apply_rotation(joint) {
         var angles = this.onResults(joint);
-        
-
-        
         if (joint == this.neck) {
             var tp_x_coeff = 0.7, tp_x_gap = Math.PI / 2.3, 
             tp_y_coeff = 0.7, tp_y_gap = Math.PI / 2.5, 
@@ -263,53 +273,47 @@ export class Scene {
             
         }
         else if (joint == this.right_arm) {
-            const default_avatar_angles = new THREE.Vector3(0.716, -0.509, -0.129);
-            const default_pose_angles = new THREE.Vector3(2.7, 0.71, 2);
+            const default_avatar_angles = new THREE.Vector3(-0.5, 0.05, -3);
+            const default_pose_angles = new THREE.Vector3(3, 0.6, 1.9);
             var tp_x_coeff = 1;
             tp_y_coeff = 1;
-            tp_z_coeff = 1.3;
+            tp_z_coeff = 1;
             rot_x_min = -100, rot_x_max = 100,
             rot_y_min = -100, rot_y_max = 100
             rot_z_min = -100, rot_z_max = 100;
-            var targeted_angle_x = (angles.x - default_pose_angles.x) * tp_x_coeff + default_avatar_angles.x - 0.2;
-            var targeted_angle_y = (angles.y - default_pose_angles.y) * tp_y_coeff + default_avatar_angles.y - 0.2;
-            var targeted_angle_z = (angles.z - default_pose_angles.z) * tp_z_coeff + default_avatar_angles.z - 0.2;
+            var targeted_angle_x = (angles.x - default_pose_angles.x) * tp_x_coeff + default_avatar_angles.x ;
+            var targeted_angle_y = (angles.y - default_pose_angles.y) * tp_y_coeff + default_avatar_angles.y ;
+            var targeted_angle_z = (angles.z - default_pose_angles.z) * tp_z_coeff + default_avatar_angles.z ;
         }
         else if (joint == this.left_shoulder) {
 
         }     
+        
 
-        const joint_rotation_y = targeted_angle_y - this.anglesBetween3D(joint.position, new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0)).y;
+        // vectWorldToJoint = joint.position;
+        
+        // const joint_rotation_y = targeted_angle_y - this.anglesBetween3D(joint.position, new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0)).y;
         // Math.min(Math.max(lerp(joint.rotation.y, targeted_position_y, 0.1), rot_y_min), rot_y_max);
         
         // console.log(joint.up);
         // console.log(joint_rotation_y);
         // joint.rotateY(joint_rotation_y);
-        joint.rotateZ(0.1);
+        // joint.rotateZ(0.1);
         // this.model.rotateX(0.1);
-        var yAxis = new THREE.Vector3(0,0,1);
-        this.rotateAroundWorldAxis(joint, yAxis, 0.1);
+        // var yAxis = new THREE.Vector3(0,0,1);
+        // joint.rotateOnWorldAxis(yAxis, 0.1);
 
-        // console.log("joint.rotation.x : ", joint.rotation.x);
-        // console.log("joint.rotation.y : ", joint.rotation.y);
-        // console.log("joint.rotation.z : ", joint.rotation.z);
+        console.log("joint.rotation.x : ", joint.rotation.x);
+        console.log("joint.rotation.y : ", joint.rotation.y);
+        console.log("joint.rotation.z : ", joint.rotation.z);
 
-        // console.log("pose_rotation_x : ", angles.x);
-        // console.log("pose_rotation_y : ", angles.y);
-        // console.log("pose_rotation_z : ", angles.z);
-
-        // joint.rotation.y += 0.1;
-
-        // joint.rotation.x = Math.min(Math.max(lerp(joint.rotation.x, targeted_angle_x, 0.1), rot_x_min), rot_x_max);
-        // joint.rotation.y = Math.min(Math.max(lerp(joint.rotation.y, targeted_angle_y, 0.1), rot_y_min), rot_y_max);
-        // joint.rotation.z = Math.min(Math.max(lerp(joint.rotation.z, targeted_angle_z, 0.05), rot_z_min), rot_z_max);
-    }
-
-    rotateAroundWorldAxis(object, axis, radians) {
-        var rotWorldMatrix = new THREE.Matrix4();
-        rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
-        rotWorldMatrix.multiply(object.matrix); 
-        object.matrix = rotWorldMatrix;
-        object.rotation.setFromRotationMatrix(object.matrix);
+        console.log("pose_rotation_x : ", angles.x);
+        console.log("pose_rotation_y : ", angles.y);
+        console.log("pose_rotation_z : ", angles.z);
+        
+        joint.rotation.x = Math.min(Math.max(lerp(joint.rotation.x, targeted_angle_z, 0.05), rot_z_min), rot_z_max);
+        joint.rotation.y = Math.PI;
+        // joint.rotation.y = Math.min(Math.max(lerp(joint.rotation.y, targeted_angle_x, 0.1), rot_x_min), rot_x_max);
+        // joint.rotation.z = Math.min(Math.max(lerp(joint.rotation.z, targeted_angle_y, 0.1), rot_y_min), rot_y_max);
     }
 }
