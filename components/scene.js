@@ -1,11 +1,21 @@
-import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
-import { GLTFLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js';
-import { MathUtils } from 'https://unpkg.com/three@0.127.0/src/math/MathUtils.js'
-import { VertexNormalsHelper } from 'https://unpkg.com/three@0.127.0/examples/jsm/helpers/VertexNormalsHelper.js';
+
+// import * as THREE from './three/build/three.module.js';
+// import { GLTFLoader } from './three/examples/jsm/loaders/GLTFLoader.js';
+// import { MathUtils } from './three/src/math/MathUtils.js'
+// import { VertexNormalsHelper } from './three/examples/jsm/helpers/VertexNormalsHelper.js';
+// import { FontLoader } from './three/examples/jsm/loaders/FontLoader.js';
+
+// import * as THREE from "https://github.com/mrdoob/three.js/blob/master/build/three.module.js";
+// import * as THREE from 'https://unpkg.com/three@0.138.0/build/three.module.js';
+import * as THREE from 'three';
+import { GLTFLoader } from 'https://unpkg.com/three@0.138.0/examples/jsm/loaders/GLTFLoader.js';
+import { VertexNormalsHelper } from 'https://unpkg.com/three@0.138.0/examples/jsm/helpers/VertexNormalsHelper.js';
+// import { FontLoader } from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/FontLoader.js';
+
 
 export class Scene {
     constructor() {
-        
+        this.count = 0;
         // Video
         const canvasElement = document.createElement('canvas');
         this.clock = new THREE.Clock()
@@ -33,7 +43,7 @@ export class Scene {
 
         // Scene
         this.scene = new THREE.Scene()
-        this.scene.background = new THREE.Color(0x000000);
+        // this.scene.background = new THREE.Color(0x000000);
         // Init the renderer
         this.renderer = new THREE.WebGLRenderer({
             canvas: canvasElement,
@@ -58,9 +68,9 @@ export class Scene {
             skinning: true
         });
 
-        var loader = new GLTFLoader();
-        
-        loader.load(
+        var model_loader = new GLTFLoader();
+
+        model_loader.load(
             MODEL_PATH,
             gltf => {
                 this.model = gltf.scene;
@@ -84,63 +94,73 @@ export class Scene {
                     }
                     else if (o.isBone && o.name === 'mixamorigRightShoulder') {
                         this.right_shoulder = o;
+                        
+
                     }
                     else if (o.isBone && o.name === 'mixamorigLeftShoulder') {
                         this.left_shoulder = o;
                     }
                     else if (o.isBone && o.name === 'mixamorigRightArm') {
                         this.right_arm = o;
-                        // this.right_arm.DefaultUp = (0,1,0);
-                        // const vertexHelper = new VertexNormalsHelper( o, 10, 0x00ff00, 5 );
-                        // // this.scene.add( vertexHelper );
-                        // var quaternion = new THREE.Quaternion();
-                        // const quatObjToWorld = this.right_arm.getWorldQuaternion(quaternion);
-                        // // let rotation = new THREE.Euler();
-                        // // rotation.setFromQuaternion(quaternion);
-                        // this.right_arm.applyQuaternion(quatObjToWorld);
-                        this.right_arm.lookAt(new THREE.Vector3(0,0,0));
+
+                        var right_arm_axes = new THREE.AxesHelper(20);
+                        this.right_arm.add(right_arm_axes);
                     }
-                    else if (o.isBone && o.name === 'mixamorigLeftForeArm') {
+                    else if (o.isBone && o.name === 'mixamorigRightForeArm') {
+                        this.right_fore_arm = o;
+                        this.right_fore_arm.rotation.x = 0; // Math.PI/2;
+                        this.right_fore_arm.rotation.y = 0;
+                        this.right_fore_arm.rotation.z = 0;
+                    }
+                    else if (o.isBone && o.name === 'mixamorigLeftArm') {
                         this.left_arm = o;
+                        // const vec = new THREE.Vector3();
+                        // this.left_arm.getWorldPosition(vec)
+                        // console.log("this.left_arm.position : ", vec);
                     }
                     else if (o.isBone && o.name === 'mixamorigLeftForeArm') {
                         this.left_fore_arm = o;
-                        console.log("left_fore_arm");
                     }
+                    else if (o.isBone && o.name === 'mixamorigRightLeg') {
+                        this.right_leg = o;
+                    }
+                    else if (o.isBone && o.name === 'mixamorigSpine1') {
+                        this.spine_1 = o;
+                        console.log(this.spine_1)
+                    }
+                    else if (o.isBone && o.name === 'mixamorigSpine2') {
+                        this.spine_2 = o;
+                    }
+                    else if (o.isBone && o.name === 'mixamorigHips') {
+                        this.hips = o;
+                        
+
+                        // const vec = new THREE.Vector3();
+                        // this.hips.getWorldPosition(vec)
+                        // console.log("this.hips.position : ", vec);
+                    }
+
                 });
 
-                this.model.scale.set(7, 10, 7);
-
+                // this.model.scale.set(7, 10, 7);
+                this.model.scale.set(4, 7, 4);
                 this.model.position.x = 0;
-                this.model.position.y = -11;
+                this.model.position.y = -2; // -11
                 this.model.position.z = 0;
 
                 this.scene.add(this.model);
-                
-                const skeletonHelper = new THREE.SkeletonHelper( this.model );
-                this.scene.add( skeletonHelper );
 
-                // loaderAnim.remove();
-
-                this.mixer = new THREE.AnimationMixer(this.model);
-
-                let idleAnim = THREE.AnimationClip.findByName(fileAnimations, 'idle');
-
-                idleAnim.tracks.splice(3, 3);
-                idleAnim.tracks.splice(9, 3);
-
-                let idle = this.mixer.clipAction(idleAnim);
-                idle.timeScale = 0.5;
-                // idle.play();
+                const skeletonHelper = new THREE.SkeletonHelper(this.model);
+                this.scene.add(skeletonHelper);
+                // this.model.visible = false;
             },
             undefined, // We don't need this function
             function (error) {
                 console.error(error);
             }
         );
-        const axesHelper = new THREE.AxesHelper( 5 );
-        this.scene.add( axesHelper );
-        // Camera
+        // const axesHelper = new THREE.AxesHelper( 5 );
+        // this.scene.add( axesHelper );
 
         let fov = 75
         let near = 0.01
@@ -176,6 +196,7 @@ export class Scene {
         // Add directional Light to scene
         this.scene.add(dirLight);
 
+
     }
 
     reset() { }
@@ -184,136 +205,233 @@ export class Scene {
         this.renderer.render(this.scene, this.camera);
     }
 
-    update_data(body_pose) {
-
-        if (this.mixer) {
-            this.mixer.update(this.clock.getDelta());
-        }
-
-        this.body_pose = body_pose;
-        
-        if (this.neck) {
-            //this.apply_rotation(this.neck);
-        }
-        if (this.right_arm) {
-            this.apply_rotation(this.right_arm);
-        }
-        if (this.left_fore_arm) {
-            // this.apply_rotation(this.left_fore_arm);
-        }
-    }
-
     show() { }
 
     update() { }
 
-    angleBetween2D(u, v) {
+    angleBetweenVectors2D(u, v) {
+        
+        return Math.atan2(u.x * v.y - u.y * v.x, u.x * v.x + u.y * v.y);
 
-        const denom = Math.sqrt(Math.pow(u.x, 2) + Math.pow(u.y, 2)) * Math.sqrt(Math.pow(v.x, 2) + Math.pow(v.y, 2));
-
-        if (denom === 0) { var theta = Math.PI / 2; }
-        else { var theta = Math.acos((u.x * v.x + u.y * v.y) / denom); }
-
-        // clamp, to handle numerical problems
-
-        // return  MathUtils.clamp( theta, - 1, 1 )
-        return theta;
     }
 
-    anglesBetween3D(p1, p2, p3) {
-        const u = (new THREE.Vector3).subVectors(p1, p2);
-        const v = (new THREE.Vector3).subVectors(p3, p2);
+    testAnglesOf() {
+        // console.log(this.anglesOf(new THREE.Vector3(5,5,0)));
+        // console.log(this.anglesBetweenWorld(new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,0), new THREE.Vector3(15,-15,0)));
+        // console.log(this.anglesBetweenWorld(new THREE.Vector3(0,1,0), new THREE.Vector3(-15,15,0),new THREE.Vector3(0,0,0)));
+    }
 
-        const teta_x = this.angleBetween2D(new THREE.Vector2(u.y, u.z), new THREE.Vector2(v.y, v.z));
-        const teta_y = this.angleBetween2D(new THREE.Vector2(u.x, u.z), new THREE.Vector2(v.x, v.z));
-        const teta_z = this.angleBetween2D(new THREE.Vector2(u.x, u.y), new THREE.Vector2(v.x, v.y));
+    angleBetweenLocal(u, x_axis, y_axis, z_axis) {
+
+        return u.angleTo(x_axis, y_axis, z_axis);
+
+    }
+    anglesBetweenVectors3D(u, v) {
+        const teta_x = this.angleBetweenVectors2D(new THREE.Vector2(u.y, u.z), new THREE.Vector2(v.y, v.z));
+        const teta_y = this.angleBetweenVectors2D(new THREE.Vector2(u.x, u.z), new THREE.Vector2(v.x, v.z));
+        const teta_z = this.angleBetweenVectors2D(new THREE.Vector2(u.x, u.y), new THREE.Vector2(v.x, v.y));
 
         return { x: teta_x, y: teta_y, z: teta_z }
     }
+    testAnglesBetweenVectors3D() {
+        console.log(this.anglesBetweenVectors3D(new THREE.Vector3(1, 0, 0), new THREE.Vector3(5, 5, 0)));
+    }
 
-    onResults(joint) {
+    update_data(body_pose) {
+
+        this.body_pose = body_pose;
+
+        if (this.neck) {
+            // this.apply_rotation(this.neck);
+        }
+
+        if (this.right_shoulder) {
+            // this.apply_rotation(this.right_shoulder); 
+        }
+        if (this.right_arm) {
+            this.poseAngles(this.right_arm);
+            // this.right_arm.rotation.setFromVector3(this.right_arm.worldToLocal(new THREE.Vector3(0,Math.PI/2,0)));
+        }
+        if (this.right_fore_arm) {
+            // this.apply_rotation(this.right_fore_arm);
+        }
+        if (this.left_arm) {
+            // this.apply_rotation(this.left_arm);
+        }
+        if (this.left_fore_arm) {
+            // this.apply_rotation(this.left_fore_arm);
+        }
+        if (this.hips) {
+            // this.apply_rotation(this.left_fore_arm);
+        }
+    }
+
+    poseAngles(joint) {
         if (this.body_pose.length == 0) return;
+        const pose_nose = new THREE.Vector3(this.body_pose[0].slice(0, 3)[0], -this.body_pose[0].slice(0, 3)[1], -this.body_pose[0].slice(0, 3)[2]);
+        const pose_mouth_left = new THREE.Vector3(this.body_pose[9].slice(0, 3)[0], -this.body_pose[9].slice(0, 3)[1], -this.body_pose[9].slice(0, 3)[2]);
+        const pose_mouth_right = new THREE.Vector3(this.body_pose[10].slice(0, 3)[0], -this.body_pose[10].slice(0, 3)[1], -this.body_pose[10].slice(0, 3)[2]);
+        const pose_left_shoulder = new THREE.Vector3(this.body_pose[11].slice(0, 3)[0], -this.body_pose[11].slice(0, 3)[1], -this.body_pose[11].slice(0, 3)[2]);
+        const pose_right_shoulder = new THREE.Vector3(this.body_pose[12].slice(0, 3)[0], -this.body_pose[12].slice(0, 3)[1], -this.body_pose[12].slice(0, 3)[2]);
+        const pose_right_elbow = new THREE.Vector3(this.body_pose[14].slice(0, 3)[0], -this.body_pose[14].slice(0, 3)[1], -this.body_pose[14].slice(0, 3)[2]);
+        const pose_left_wrist = new THREE.Vector3(this.body_pose[15].slice(0, 3)[0], -this.body_pose[15].slice(0, 3)[1], -this.body_pose[15].slice(0, 3)[2]);
+        const pose_right_wrist = new THREE.Vector3(this.body_pose[16].slice(0, 3)[0], -this.body_pose[16].slice(0, 3)[1], -this.body_pose[16].slice(0, 3)[2]);
+        const pose_left_hip = new THREE.Vector3(this.body_pose[23].slice(0, 3)[0], -this.body_pose[23].slice(0, 3)[1], -this.body_pose[23].slice(0, 3)[2]);
+        const pose_right_hip = new THREE.Vector3(this.body_pose[24].slice(0, 3)[0], -this.body_pose[24].slice(0, 3)[1], -this.body_pose[24].slice(0, 3)[2]);
+        
+        const pose_spine_2 = ((new THREE.Vector3).copy(pose_right_shoulder)).add(pose_left_shoulder).multiplyScalar(0.5).multiplyScalar(0.728);
+        const pose_hips = ((new THREE.Vector3).copy(pose_right_hip)).add(pose_left_hip).multiplyScalar(0.5).multiplyScalar(0.728);
+        const pose_mixamo_right_shoulder = new THREE.Vector3(
+            pose_right_shoulder.x + 0.33*(new THREE.Vector3).subVectors(pose_left_shoulder, pose_right_shoulder),
+            pose_hips.y + 1.158*(new THREE.Vector3).subVectors(pose_spine_2, pose_hips),
+            pose_spine_2.z
+        );
+        const pose_mixamo_left_shoulder = new THREE.Vector3(
+            pose_left_shoulder.x - 0.33*(new THREE.Vector3).subVectors(pose_left_shoulder, pose_right_shoulder),
+            pose_hips.y + 1.158*(new THREE.Vector3).subVectors(pose_spine_2, pose_hips),
+            pose_spine_2.z
+        );
+
         if (joint == this.neck) {
-            const point1 = new THREE.Vector3(this.body_pose[0].slice(0, 3)[0], this.body_pose[0].slice(0, 3)[1], this.body_pose[0].slice(0, 3)[2]);
-            const point2 = new THREE.Vector3(this.body_pose[11].slice(0, 3)[0], this.body_pose[11].slice(0, 3)[1], this.body_pose[11].slice(0, 3)[2]);
-            const pose_right_shoulder = new THREE.Vector3(this.body_pose[12].slice(0, 3)[0], this.body_pose[12].slice(0, 3)[1], this.body_pose[12].slice(0, 3)[2]);
-            const point_articulation = ((new THREE.Vector3).copy(point2)).add(pose_right_shoulder).multiplyScalar(0.5);
-            return this.anglesBetween3D(point1, point_articulation, point2);
             //ATTENTION : point1 à point_articulation doivent former l'axe y du bone à pivoter
+            const vec_no_s2 = joint.worldToLocal((new THREE.Vector3).subVectors(pose_nose, pose_spine_2));
+            const vec_rs_s2 = joint.worldToLocal((new THREE.Vector3).subVectors(pose_right_shoulder, pose_spine_2));
+            const vec_mr_ml = joint.worldToLocal((new THREE.Vector3).subVectors(pose_mouth_right, pose_mouth_left));
+            const result = this.anglesBetweenVectors3D(vec_mr_ml, vec_rs_s2);
+
+            // result.z = this.anglesBetweenWorld(vec_mr_ml,vec_rs_s2 ).z;
+            // result.y = this.anglesBetweenVectors3D(vec_mr_ml,vec_rs_s2 ).y;
+
+            return result;
         }
         else if (joint == this.right_arm) {
-            var pose_idx_p1 = 24;
-            var pose_idx_p2 = 12;
-            var pose_idx_articulation = 14;
-        }
-        else if (joint == this.left_shoulder) {
-            var pose_idx_p1 = 23;
-            var pose_idx_p2 = 11;
-            var pose_idx_articulation = 13;
-        }
+            var point1 = pose_mixamo_right_shoulder;
+            var point_articulation = pose_right_shoulder;
+            var point2 = pose_right_elbow;
+            // const vec_ex1 = (new THREE.Vector3).subVectors(point1, point_articulation);
+            // const vec_ex2 = (new THREE.Vector3).subVectors(point2, point_articulation);
+            
+            const x_child = -2;
+            const y_child = -1;
+            const child_vec = new THREE.Vector3(1,1,0); // X Z Y
+            const parent_vec = new THREE.Vector3(-1,-1,0);
+            // console.log(this.angleBetweenVectors2D(vec_ex1,vec_ex2));
+            // const anglesPose = this.anglesBetweenWorld()
+            setJointAnglesFromVects1(joint, parent_vec, child_vec);
 
-        const point1 = new THREE.Vector3(this.body_pose[pose_idx_p1].slice(0, 3)[0], this.body_pose[pose_idx_p1].slice(0, 3)[1], this.body_pose[pose_idx_p1].slice(0, 3)[2]);
-        const point2 = new THREE.Vector3(this.body_pose[pose_idx_p2].slice(0, 3)[0], this.body_pose[pose_idx_p2].slice(0, 3)[1], this.body_pose[pose_idx_p2].slice(0, 3)[2]);
-        const point_articulation = new THREE.Vector3(this.body_pose[pose_idx_articulation].slice(0, 3)[0], this.body_pose[pose_idx_articulation].slice(0, 3)[1], this.body_pose[pose_idx_articulation].slice(0, 3)[2]);
-        return this.anglesBetween3D(point1, point_articulation, point2);
+
+            // console.log(joint);
+            // return (this.anglesBetweenVectors3D(vec_ex1, vec_ex2));
+        }
+        else if (joint == this.right_fore_arm) {
+            var point1 = pose_right_shoulder;
+            var point_articulation = pose_right_wrist;
+            var point2 = pose_right_elbow;
+        }
     }
 
-    apply_rotation(joint) {
-        var angles = this.onResults(joint);
-        if (joint == this.neck) {
-            var tp_x_coeff = 0.7, tp_x_gap = Math.PI / 2.3, 
-            tp_y_coeff = 0.7, tp_y_gap = Math.PI / 2.5, 
-            tp_z_coeff = 3.5, tp_z_gap = 1.3, 
-            rot_x_min = 6,rot_x_max = 8,
-            rot_y_min = -1.5,rot_y_max = 1.5,
-            rot_z_min = 5.5, rot_z_max = 7.5;
-            
-            var targeted_position_x = - angles.x * tp_x_coeff + tp_x_gap;
-            var targeted_position_y = - angles.y * tp_y_coeff + tp_y_gap;
-            
-        }
-        else if (joint == this.right_arm) {
-            const default_avatar_angles = new THREE.Vector3(-0.5, 0.05, -3);
-            const default_pose_angles = new THREE.Vector3(3, 0.6, 1.9);
-            var tp_x_coeff = 1;
-            tp_y_coeff = 1;
-            tp_z_coeff = 1;
-            rot_x_min = -100, rot_x_max = 100,
-            rot_y_min = -100, rot_y_max = 100
-            rot_z_min = -100, rot_z_max = 100;
-            var targeted_angle_x = (angles.x - default_pose_angles.x) * tp_x_coeff + default_avatar_angles.x ;
-            var targeted_angle_y = (angles.y - default_pose_angles.y) * tp_y_coeff + default_avatar_angles.y ;
-            var targeted_angle_z = (angles.z - default_pose_angles.z) * tp_z_coeff + default_avatar_angles.z ;
-        }
-        else if (joint == this.left_shoulder) {
+    
+    //récupérer les axis du joint étudié
+    //calculer l'angle entre la pose et les axis du joint
+    //set la rotation du joint sur cet angle
+}
 
-        }     
-        
+function getTotalRotation(joint) {
+    if (joint.type == "Object3D") return new THREE.Vector3(0, 1, 0);
+    return (new THREE.Vector3()).addVectors(joint.rotation, getTotalRotation(joint.parent));
+}
 
-        // vectWorldToJoint = joint.position;
-        
-        // const joint_rotation_y = targeted_angle_y - this.anglesBetween3D(joint.position, new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0)).y;
-        // Math.min(Math.max(lerp(joint.rotation.y, targeted_position_y, 0.1), rot_y_min), rot_y_max);
-        
-        // console.log(joint.up);
-        // console.log(joint_rotation_y);
-        // joint.rotateY(joint_rotation_y);
-        // joint.rotateZ(0.1);
-        // this.model.rotateX(0.1);
-        // var yAxis = new THREE.Vector3(0,0,1);
-        // joint.rotateOnWorldAxis(yAxis, 0.1);
+function anglesBetweenWorld(u) {
 
-        console.log("joint.rotation.x : ", joint.rotation.x);
-        console.log("joint.rotation.y : ", joint.rotation.y);
-        console.log("joint.rotation.z : ", joint.rotation.z);
+    return new THREE.Euler(u.angleTo(new THREE.Vector3(1, 0, 0)),
+        u.angleTo(new THREE.Vector3(0, 1, 0)),
+        u.angleTo(new THREE.Vector3(0, 0, 1)));
 
-        console.log("pose_rotation_x : ", angles.x);
-        console.log("pose_rotation_y : ", angles.y);
-        console.log("pose_rotation_z : ", angles.z);
-        
-        joint.rotation.x = Math.min(Math.max(lerp(joint.rotation.x, targeted_angle_z, 0.05), rot_z_min), rot_z_max);
-        joint.rotation.y = Math.PI;
-        // joint.rotation.y = Math.min(Math.max(lerp(joint.rotation.y, targeted_angle_x, 0.1), rot_x_min), rot_x_max);
-        // joint.rotation.z = Math.min(Math.max(lerp(joint.rotation.z, targeted_angle_y, 0.1), rot_y_min), rot_y_max);
+}
+
+function getRelativeAxisLocalToWorld(joint)
+{
+    var normalMatrix = new THREE.Matrix3().getNormalMatrix(joint.parent.matrixWorld);
+    var normal_x = new THREE.Vector3(1, 0, 0);
+    var normal_y = new THREE.Vector3(0, 1, 0);
+    var normal_z = new THREE.Vector3(0, 0, 1);
+    var joint_x_local_axis = normal_x.clone().applyMatrix3(normalMatrix).normalize();
+    var joint_y_local_axis = normal_y.clone().applyMatrix3(normalMatrix).normalize();
+    var joint_z_local_axis = normal_z.clone().applyMatrix3(normalMatrix).normalize();
+    return {
+        x : joint_x_local_axis,
+        y : joint_y_local_axis,
+        z : joint_z_local_axis
     }
+}
+function getLocalRelativeAxis(joint)
+{
+    var normalMatrix = joint.parent.normalMatrix;
+    var normal_x = new THREE.Vector3(1, 0, 0);
+    var normal_y = new THREE.Vector3(0, 1, 0);
+    var normal_z = new THREE.Vector3(0, 0, 1);
+    var joint_x_local_axis = normal_x.clone().applyMatrix3(normalMatrix).normalize();
+    var joint_y_local_axis = normal_y.clone().applyMatrix3(normalMatrix).normalize();
+    var joint_z_local_axis = normal_z.clone().applyMatrix3(normalMatrix).normalize();
+    return {
+        x : joint_x_local_axis,
+        y : joint_y_local_axis,
+        z : joint_z_local_axis
+    }
+}
+
+function setJointAnglesFromVects3(joint, vec_child, vec_parent)
+{
+    var quat_pose_rot = new THREE.Quaternion();
+    quat_pose_rot.setFromUnitVectors(vec_parent.normalize(), vec_child.normalize());
+    joint.setRotationFromMatrix(joint.parent.matrixWorld.makeRotationFromQuaternion(quat_pose_rot));   
+}
+
+function setJointAnglesFromVects1(joint, vec_parent_world, vec_child_world)
+{
+    var quat_pose_rot = new THREE.Quaternion();
+    // console.log(vec_parent.normalize(), vec_child.normalize());
+    // console.log(joint.worldToLocal(vec_parent).normalize(), joint.worldToLocal(vec_child).normalize());
+    // const vec_parent_local = joint.worldToLocal(vec_parent_world).normalize();
+    // const vec_child_local = joint.worldToLocal(vec_child_world).normalize();
+
+    // quat_pose_rot.setFromUnitVectors(vec_parent_local,vec_child_local);
+    quat_pose_rot.setFromUnitVectors(joint.worldToLocal(vec_parent_world).normalize(), joint.worldToLocal(vec_child_world.normalize()));
+    // // console.log((new THREE.Euler()).setFromQuaternion (quat_pose_rot));
+    // joint.setRotationFromQuaternion(quat_pose_rot);
+    joint.quaternion.rotateTowards(quat_pose_rot, 0.05)
+}
+
+function setJointAnglesFromVects2(joint, pose_vect1, pose_vect2)
+{
+    var quatRotation = new THREE.Quaternion();
+    quatRotation.setFromUnitVectors(pose_vect1, pose_vect2);
+    const eulerAngles = (new THREE.Euler()).setFromQuaternion (quatRotation, 'XYZ');
+    console.log(eulerAngles);
+
+    var quat = new THREE.Quaternion();
+    var rotation = new THREE.Quaternion();
+
+    var vx = new THREE.Vector3( 1, 0, 0 );
+    var vy = new THREE.Vector3( 0, 1, 0 );
+    var vz = new THREE.Vector3( 0, 0, 1 );
+
+    quat.setFromAxisAngle( vx, eulerAngles.x );
+    rotation.multiply( quat );
+    quat.setFromAxisAngle( vy, eulerAngles.y );
+    rotation.multiply( quat );
+    quat.setFromAxisAngle( vz, eulerAngles.z );
+    rotation.multiply( quat );
+
+    joint.setRotationFromQuaternion(rotation);
+
+    // prendre les axes relatifs au joint (ceux du parent)
+    // calculer leur angle de base par rapport au monde
+    // calculer le nouvel angle à appliquer à chaque axe en prenant compte des angles de base
+}
+
+function getWorldAnglesOfJoin(joint)
+{
+    jointWorldAngles = (new THREE.Euler()).setFromRotationMatrix(joint.matrixWorld);
+    return jointWorldAngles
 }
