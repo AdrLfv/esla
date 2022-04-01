@@ -50,6 +50,7 @@ export class Scene {
 
         // Model
         const MODEL_PATH = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy_lightweight.glb';
+
         let stacy_txt = new THREE.TextureLoader().load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
         stacy_txt.flipY = false;
 
@@ -66,7 +67,7 @@ export class Scene {
             gltf => {
                 this.model = gltf.scene;
                 let fileAnimations = gltf.animations;
-                
+
                 this.model.traverse(o => {
 
                     if (o.isMesh) {
@@ -107,24 +108,9 @@ export class Scene {
                     else if (o.isBone && o.name === 'mixamorigLeftHand') {
                         this.left_hand = o;
                     }
-                    // else if (o.isBone && o.name === 'mixamorigRightHandPinky4') {
-                    //     this.right_hand_pinky_4 = o;
-                    //     this.right_hand_pinky_4.removeFromParent();
-                    //     if(this.right_hand)
-                    //     {
-                    //         this.right_hand_pinky_4.attach(this.right_hand);
-                    //         console.log("right_hand_pinky_4 attached to right_hand_pinky_4");
-                    //     }
-                    // }
-                    // else if (o.isBone && o.name === 'mixamorigLeftHandPinky4') {
-                    //     this.left_hand_pinky_4 = o;
-                    //     this.left_hand_pinky_4.removeFromParent();
-                    //     if(this.left_hand)
-                    //     {
-                    //         this.left_hand_pinky_4.attach(this.right_hand);
-                    //         console.log("left_hand_pinky_4 attached to right_hand");
-                    //     }
-                    // }
+                    else if (o.isBone && o.name === 'mixamorigRightHandPinky4') {
+                        this.right_hand_pinky_4 = o;
+                    }
                     else if (o.isBone && o.name === 'mixamorigRightHandIndex4') {
                         this.right_hand_index_4 = o;
                     }
@@ -167,7 +153,7 @@ export class Scene {
                     
 
                 });
-                
+
                 // this.model.scale.set(7, 10, 7);
                 this.model.scale.set(4, 7, 4);
                 this.model.position.x = 0;
@@ -278,7 +264,6 @@ export class Scene {
         const pose_right_elbow = new THREE.Vector3(this.body_pose[14].slice(0, 3)[0], -this.body_pose[14].slice(0, 3)[1], -this.body_pose[14].slice(0, 3)[2]);
         const pose_left_hand = new THREE.Vector3(this.body_pose[15].slice(0, 3)[0], -this.body_pose[15].slice(0, 3)[1], -this.body_pose[15].slice(0, 3)[2]);
         const pose_right_hand = new THREE.Vector3(this.body_pose[16].slice(0, 3)[0], -this.body_pose[16].slice(0, 3)[1], -this.body_pose[16].slice(0, 3)[2]);
-        const pose_left_hand_pinky_4 = new THREE.Vector3(this.body_pose[17].slice(0, 3)[0], -this.body_pose[17].slice(0, 3)[1], -this.body_pose[17].slice(0, 3)[2]);
         const pose_right_hand_pinky_4 = new THREE.Vector3(this.body_pose[18].slice(0, 3)[0], -this.body_pose[18].slice(0, 3)[1], -this.body_pose[18].slice(0, 3)[2]);
         const pose_right_hand_index_4 = new THREE.Vector3(this.body_pose[20].slice(0, 3)[0], -this.body_pose[20].slice(0, 3)[1], -this.body_pose[20].slice(0, 3)[2]);
         const pose_left_hand_thumb_4 = new THREE.Vector3(this.body_pose[21].slice(0, 3)[0], -this.body_pose[21].slice(0, 3)[1], -this.body_pose[21].slice(0, 3)[2]);
