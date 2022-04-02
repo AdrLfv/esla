@@ -1,3 +1,5 @@
+<img src="https://github.com/AdrLfv/esla/blob/master/components/logo%20esla.png?raw=true" alt="drawing" width="100" class="center"/>   
+
 # SLEA - a Sign Language Eductive Avatar
 
 ## Description
@@ -21,3 +23,12 @@ All the node\_modules package used for unit testing are not on the github and ar
 
 Unfortunately due to the time-consuming implementation of the adapted rotation of one bone around another, loading and saving coordinate sequences to play animations could not be implemented.
 Its accuracy is sometimes poor, with MediaPipe detection sometimes causing "Ragdoll" type bugs. Its appearance also needs to be changed.
+
+<style>
+img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
