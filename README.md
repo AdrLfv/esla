@@ -1,6 +1,6 @@
 <img src="https://github.com/AdrLfv/esla/blob/master/components/logo%20esla.png?raw=true" alt="drawing" width="100" class="center"/>   
 
-# SLEA - a Sign Language Eductive Avatar
+# SLEA - a Sign Language Educative Avatar
 
 ## Description
 
