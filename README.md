@@ -25,10 +25,3 @@ Unfortunately due to the time-consuming implementation of the adapted rotation o
 Its accuracy is sometimes poor, with MediaPipe detection sometimes causing "Ragdoll" type bugs. Its appearance also needs to be changed.
 
 
-<style>
-  img {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-  }
-</style>
